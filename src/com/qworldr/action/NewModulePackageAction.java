@@ -6,7 +6,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiDirectory;
-import com.qowrldr.ui.NewModulePackageDialog;
+import com.qworldr.ui.NewModulePackageDialog;
 
 /**
  * @Author wujiazhen
@@ -22,7 +22,7 @@ public class NewModulePackageAction extends CreateInDirectoryActionBase {
             Project project = e.getProject();
             PsiDirectory dir = view.getOrChooseDirectory();
             if (dir != null) {
-                NewModulePackageDialog newModulePackageDialog = new NewModulePackageDialog(project);
+                NewModulePackageDialog newModulePackageDialog = new NewModulePackageDialog(project,dir);
                 newModulePackageDialog.show();
             }
         }
