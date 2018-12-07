@@ -30,8 +30,8 @@
 
   <actions>
     <!-- Add your actions here -->
-    <action id="NewModulePackageAction" class="com.qworldr.action.NewModulePackageAction" text="NewModulePackageAction"
-            description="NewModulePackageAction">
+    <action id="NewModulePackageAction" class="com.qworldr.action.NewModulePackageAction" text="Module Template"
+            description="new module template ">
       <add-to-group group-id="NewGroup" anchor="last"/>
     </action>
   </actions>

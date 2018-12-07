@@ -5,7 +5,10 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.JavaDirectoryService;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,7 +21,9 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.event.*;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 
 /**
  * @Author wujiazhen
@@ -37,7 +42,7 @@ public class NewModulePackageDialog extends DialogWrapper {
     //定义需要被拖动的TreePath
     private TreePath movePath;
     private Project project;
-
+    private List<PsiElement> psiElementList=new ArrayList<>();
     public NewModulePackageDialog(@Nullable Project project, PsiDirectory psiDirectory) {
         super(project, false);
         this.psiDirectory = psiDirectory;
@@ -112,11 +117,13 @@ public class NewModulePackageDialog extends DialogWrapper {
         Enumeration children = root.children();
         while (children.hasMoreElements()){
             DefaultMutableTreeNode o = (DefaultMutableTreeNode)children.nextElement();
+            Object userObject = o.getUserObject();
             if(o.getAllowsChildren()){
-                Object userObject = o.getUserObject();
-
+                PsiDirectory subdirectory = this.psiDirectory.createSubdirectory(String.valueOf(userObject));
+                psiElementList.add(subdirectory);
             }else{
-
+                PsiClass aClass = JavaDirectoryService.getInstance().createClass(this.psiDirectory, String.valueOf(userObject));
+                psiElementList.add(psiDirectory);
             }
         }
         super.doOKAction();
@@ -160,7 +167,9 @@ public class NewModulePackageDialog extends DialogWrapper {
         };
         templateTree.addMouseListener(ml);
     }
-
+    public List<PsiElement> getPsiElementList(){
+        return psiElementList;
+    }
     @Nullable
     @Override
     protected JComponent createCenterPanel() {
