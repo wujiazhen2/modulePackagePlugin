@@ -1,5 +1,6 @@
 package com.qworldr.ui;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
@@ -42,6 +43,7 @@ public class NewModulePackageDialog extends DialogWrapper {
     private List<PsiElement> psiElementList=new ArrayList<>();
     private JTreeWarp jTreeWarp;
     public NewModulePackageDialog(@Nullable Project project, PsiDirectory psiDirectory) {
+//        AllIcons.General.Add
         super(project, false);
         setTitle("new module package");
         this.psiDirectory = psiDirectory;

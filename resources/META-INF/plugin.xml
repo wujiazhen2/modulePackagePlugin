@@ -34,6 +34,11 @@
             description="new module template ">
       <add-to-group group-id="NewGroup" anchor="last"/>
     </action>
+
+    <action id="EditModuleTemplateAction" class="com.qworldr.action.EditModuleTemplateAction" text="Edit ModuleTemplate"
+            description="Edit ModuleTemplate">
+      <add-to-group group-id="FileMainSettingsGroup" anchor="last"/>
+    </action>
   </actions>
 
 </idea-plugin>
