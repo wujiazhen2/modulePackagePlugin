@@ -26,6 +26,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <!-- Add your extensions here -->
+    <applicationConfigurable  instance="com.qworldr.setting.ModuleTemplateSettingConfiguration"  parentId="Editor"/>
   </extensions>
 
   <actions>
@@ -33,11 +34,6 @@
     <action id="NewModulePackageAction" class="com.qworldr.action.NewModulePackageAction" text="Module Template"
             description="new module template ">
       <add-to-group group-id="NewGroup" anchor="last"/>
-    </action>
-
-    <action id="EditModuleTemplateAction" class="com.qworldr.action.EditModuleTemplateAction" text="Edit ModuleTemplate"
-            description="Edit ModuleTemplate">
-      <add-to-group group-id="FileMainSettingsGroup" anchor="last"/>
     </action>
   </actions>
 
