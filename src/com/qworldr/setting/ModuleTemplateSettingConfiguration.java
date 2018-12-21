@@ -1,5 +1,6 @@
 package com.qworldr.setting;
 
+import com.intellij.codeInsight.template.impl.TemplateListPanel;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.qworldr.ui.ModuleTemplatePanel;
