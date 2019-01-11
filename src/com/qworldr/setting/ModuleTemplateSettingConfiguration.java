@@ -1,8 +1,11 @@
 package com.qworldr.setting;
 
-import com.intellij.codeInsight.template.impl.TemplateListPanel;
+import com.intellij.ide.fileTemplates.FileTemplateManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
+import com.intellij.openapi.project.Project;
+import com.qworldr.data.PersistentSetting;
 import com.qworldr.ui.ModuleTemplatePanel;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -11,9 +14,16 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public class ModuleTemplateSettingConfiguration implements SearchableConfigurable {
-    private boolean modified;
     private ModuleTemplatePanel panel;
-
+    private FileTemplateManager fileTemplateManager;
+    private Project project;
+    public ModuleTemplateSettingConfiguration(Project project){
+        this.project=project;
+        this.fileTemplateManager= FileTemplateManager.getInstance(project);
+        Context.fileTemplateManager=this.fileTemplateManager;
+        Context.project=this.project;
+        Context.persistentSetting= ServiceManager.getService(PersistentSetting.class);
+    }
     @NotNull
     @Override
     public String getId() {
@@ -43,7 +53,7 @@ public class ModuleTemplateSettingConfiguration implements SearchableConfigurabl
 
     @Override
     public boolean isModified() {
-        return modified;
+        return this.panel.modified();
     }
 
     /**

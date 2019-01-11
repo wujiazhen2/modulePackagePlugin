@@ -205,4 +205,9 @@ public abstract class BaseGroupPanel extends JPanel {
 
         return actionGroup;
     }
+
+    public String getSelectedItem(){
+        Object selectedItem = comboBox.getSelectedItem();
+        return String.valueOf(selectedItem);
+    }
 }

@@ -1,5 +1,7 @@
 package com.qworldr.ui;
 
+import com.intellij.icons.AllIcons;
+
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -24,9 +26,9 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
         //得到每个节点的TreeNode
         DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
         if (node.getAllowsChildren()) {
-
+            setIcon(AllIcons.Modules.SourceFolder);
         } else {
-
+            setIcon(AllIcons.FileTypes.Java);
         }
         return this;
     }
