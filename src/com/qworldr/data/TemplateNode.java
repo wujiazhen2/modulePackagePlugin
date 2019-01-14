@@ -19,7 +19,7 @@ public class TemplateNode {
     @Expose
     private String nameExpression;
     @Expose
-    private List<TemplateNode> childs=new ArrayList<>();
+    private List<TemplateNode> childs;
 
     private TemplateNode parent;
 
@@ -93,5 +93,16 @@ public class TemplateNode {
     @Override
     public String toString() {
         return nameExpression;
+    }
+
+    public void init(TemplateNode parent) {
+        setParent(parent);
+        if(NodeType.PACKAGE.equals(this.type) && childs==null){
+            childs=new ArrayList<>();
+            return;
+        }
+        for (TemplateNode child : getChilds()) {
+            child.init(this);
+        }
     }
 }

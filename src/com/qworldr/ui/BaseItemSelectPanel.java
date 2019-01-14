@@ -17,6 +17,8 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.*;
 import java.awt.*;
 import java.util.List;
@@ -105,9 +107,17 @@ public abstract class BaseItemSelectPanel<T> {
         this.myTree = new Tree(this.myTreeRoot);
         this.myTree.setRootVisible(false);
         this.myTree.setShowsRootHandles(true);
+        this.myTree.addTreeSelectionListener(e->{
+            Object[] path = e.getPath().getPath();
+            DefaultMutableTreeNode o = (DefaultMutableTreeNode)path[path.length - 1];
+            selectedItem( (T)o.getUserObject());
+        });
         return this.initToolbar().createPanel();
     }
 
+    public void setRightEditTab(JComponent jComponent){
+        this.rightPanel.add(jComponent);
+    }
     public void setTreeRender(TreeCellRenderer treeRender) {
         myTree.setCellRenderer(treeRender);
     }

@@ -78,6 +78,9 @@ public class PersistentSetting implements PersistentStateComponent<PersistentSet
     public TemplateTree getModuleTree() {
         Map<String, TemplateTree> moduleTemplateTree = this.getModuleTemplateTree();
         TemplateTree templateTree = moduleTemplateTree.get(this.getSelectedModule());
+        for (TemplateNode child : templateTree.getChilds()) {
+            child.init(null);
+        }
         return templateTree;
     }
 

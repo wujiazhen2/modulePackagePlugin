@@ -26,7 +26,9 @@ import java.util.List;
 import java.util.Set;
 
 public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
-    protected ModuleItemSelectPannel(@NotNull List itemList) {
+
+
+    public ModuleItemSelectPannel(@NotNull List itemList) {
         super(itemList);
     }
 
@@ -51,26 +53,26 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
         });
         //初始化树
         TemplateTree moduleTree = Context.persistentSetting.getModuleTree();
-        if(moduleTree==null){
+        if (moduleTree == null) {
             return component;
         }
         List<TemplateNode> childs = moduleTree.getChilds();
         for (TemplateNode child : childs) {
             DefaultMutableTreeNode defaultMutableTreeNode = addNode(child, getRoot());
-            if(child.getChilds()!=null && child.getChilds().size()>0) {
+            if (child.getChilds() != null && child.getChilds().size() > 0) {
                 buildTree(child, defaultMutableTreeNode);
             }
         }
         return component;
     }
 
-    public void buildTree(TemplateNode templateNode,DefaultMutableTreeNode treeNode){
+    public void buildTree(TemplateNode templateNode, DefaultMutableTreeNode treeNode) {
         List<TemplateNode> childs = templateNode.getChilds();
         for (TemplateNode child : childs) {
             DefaultMutableTreeNode defaultMutableTreeNode = addNode(child, treeNode);
-           if(child.getChilds()!=null && child.getChilds().size()>0) {
-               buildTree(child, defaultMutableTreeNode);
-           }
+            if (child.getChilds() != null && child.getChilds().size() > 0) {
+                buildTree(child, defaultMutableTreeNode);
+            }
         }
     }
 

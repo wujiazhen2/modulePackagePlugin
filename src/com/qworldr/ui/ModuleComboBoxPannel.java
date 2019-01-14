@@ -1,8 +1,6 @@
 package com.qworldr.ui;
 
-import com.intellij.openapi.components.ServiceManager;
 import com.qworldr.data.PersistentSetting;
-import com.qworldr.data.TemplateNode;
 import com.qworldr.data.TemplateTree;
 import com.qworldr.setting.Context;
 
