@@ -53,7 +53,7 @@ public class ModuleTemplateSettingConfiguration implements SearchableConfigurabl
 
     @Override
     public boolean isModified() {
-        return this.panel.modified();
+        return this.panel!=null && this.panel.modified();
     }
 
     /**
@@ -63,6 +63,6 @@ public class ModuleTemplateSettingConfiguration implements SearchableConfigurabl
      */
     @Override
     public void apply() throws ConfigurationException {
-
+        Context.persistentSetting.serialize();
     }
 }

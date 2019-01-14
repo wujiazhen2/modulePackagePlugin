@@ -4,6 +4,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.qworldr.data.PersistentSetting;
 import com.qworldr.data.TemplateNode;
 import com.qworldr.data.TemplateTree;
+import com.qworldr.setting.Context;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -14,7 +15,7 @@ public class ModuleComboBoxPannel extends BaseGroupPanel {
     private PersistentSetting persistentSetting;
     public ModuleComboBoxPannel(Set<String> set,String defaul) {
         super(new ArrayList<>(set), defaul==null?"":defaul);
-        persistentSetting = ServiceManager.getService(PersistentSetting.class);
+        persistentSetting = Context.persistentSetting;
     }
 
 
@@ -52,6 +53,6 @@ public class ModuleComboBoxPannel extends BaseGroupPanel {
 
     @Override
     protected void changeGroup(String name) {
-        persistentSetting.setSelectedModule(name);
+        Context.persistentSetting.setSelectedModule(name);
     }
 }

@@ -1,6 +1,5 @@
 package com.qworldr.ui;
 
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.impl.CustomFileTemplate;
@@ -24,7 +23,6 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.*;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
@@ -35,23 +33,45 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
     @Override
     public JComponent getComponent() {
         JComponent component = super.getComponent();
-        setTreeRender(new DefaultTreeCellRenderer(){
+        setTreeRender(new DefaultTreeCellRenderer() {
             @Override
             public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
                 super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
                 //得到每个节点的TreeNode
                 DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
                 Object userObject1 = node.getUserObject();
-                if(userObject1==null){
+                if (userObject1 == null) {
                     return this;
                 }
-                TemplateNode userObject = (TemplateNode)userObject1;
+                TemplateNode userObject = (TemplateNode) userObject1;
                 NodeType type = userObject.getType();
                 setIcon(type.getIcon());
                 return this;
             }
         });
+        //初始化树
+        TemplateTree moduleTree = Context.persistentSetting.getModuleTree();
+        if(moduleTree==null){
+            return component;
+        }
+        List<TemplateNode> childs = moduleTree.getChilds();
+        for (TemplateNode child : childs) {
+            DefaultMutableTreeNode defaultMutableTreeNode = addNode(child, getRoot());
+            if(child.getChilds()!=null && child.getChilds().size()>0) {
+                buildTree(child, defaultMutableTreeNode);
+            }
+        }
         return component;
+    }
+
+    public void buildTree(TemplateNode templateNode,DefaultMutableTreeNode treeNode){
+        List<TemplateNode> childs = templateNode.getChilds();
+        for (TemplateNode child : childs) {
+            DefaultMutableTreeNode defaultMutableTreeNode = addNode(child, treeNode);
+           if(child.getChilds()!=null && child.getChilds().size()>0) {
+               buildTree(child, defaultMutableTreeNode);
+           }
+        }
     }
 
     @Override
@@ -94,14 +114,8 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
                                 if (input == null) {
                                     return;
                                 }
-                                Map<String, TemplateTree> moduleTemplateTree = Context.persistentSetting.getModuleTemplateTree();
-                                TemplateTree templateTree = moduleTemplateTree.get(Context.persistentSetting.getSelectedModule());
-                                TemplateNode selectedItem = getSelectedItem();
-                                if(selectedItem.getParent()==null){
-                                    templateTree.addChild(TemplateNode.valueOf(this.getTemplatePresentation().getText(),input, NodeType.JAVA));
-                                }else {
-
-                                }
+                                TemplateNode child = TemplateNode.valueOf(this.getTemplatePresentation().getText(), input, NodeType.JAVA);
+                                addTreeNode(child);
 
                             }
                         }, Constraints.LAST);
@@ -116,7 +130,7 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
                     return;
                 }
                 TemplateNode packageNode = TemplateNode.createPackageNode(input);
-                addChildNode(packageNode);
+                addTreeNode(packageNode);
             }
         });
         DataContext context = DataManager.getInstance().getDataContext(button.getContextComponent());
@@ -124,6 +138,21 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
         popup.show(button.getPreferredPopupPoint());
     }
 
+    public void addTreeNode(TemplateNode child) {
+        TemplateTree templateTree = Context.persistentSetting.getModuleTree();
+        TemplateNode selectedItem = getSelectedItem();
+        if (selectedItem == null) {
+            templateTree.addChild(child);
+            addChildNode(child);
+        } else if (!NodeType.PACKAGE.equals(selectedItem.getType())) {
+            selectedItem.getParent().addChild(child);
+            addSibilingNode(child);
+        } else {
+            if (selectedItem != null) {
+                selectedItem.addChild(child);
+            }
+            addChildNode(child);
+        }
 
-
+    }
 }

@@ -1,8 +1,10 @@
 package com.qworldr.data;
 
+import com.google.gson.annotations.Expose;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.qworldr.setting.Context;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -10,14 +12,14 @@ import java.util.List;
  * @Date 2018/12/6
  */
 public class TemplateNode {
-
+    @Expose
     private NodeType type;
-
+    @Expose
     private String tempName;
-
+    @Expose
     private String nameExpression;
-
-    private List<TemplateNode> childs;
+    @Expose
+    private List<TemplateNode> childs=new ArrayList<>();
 
     private TemplateNode parent;
 

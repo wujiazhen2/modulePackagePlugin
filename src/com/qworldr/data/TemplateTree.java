@@ -1,5 +1,8 @@
 package com.qworldr.data;
 
+import com.google.gson.annotations.Expose;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -7,8 +10,9 @@ import java.util.List;
  * @Date 2018/12/6
  */
 public class TemplateTree {
-
-    private List<TemplateNode> childs;
+    public static final String PATH_SEPARATOR = "/";
+    @Expose
+    private List<TemplateNode> childs=new ArrayList<>();
 
     public List<TemplateNode> getChilds() {
         return childs;
@@ -19,12 +23,38 @@ public class TemplateTree {
     }
 
 
-    public void addChild(TemplateNode child){
+    public void addChild(TemplateNode child) {
         this.childs.add(child);
 
     }
 
-    public void removeChild(TemplateNode child){
+    public void removeChild(TemplateNode child) {
         this.childs.remove(child);
+    }
+
+    public TemplateNode findTemplateNode(String path) {
+        // user/path
+        if(path.startsWith("/")){
+            path=path.substring(1);
+        }
+        String[] split = path.split(PATH_SEPARATOR);
+        int count = 0;
+        List<TemplateNode> templateNodes = childs;
+        TemplateNode templateNode;
+        for (String s : split) {
+            count++;
+            for (int i = 0; i < templateNodes.size(); i++) {
+                templateNode = templateNodes.get(i);
+                if (templateNode.getNameExpression().equals(s)) {
+                    if (count == split.length) {
+                        return templateNode;
+                    } else {
+                        templateNodes = templateNode.getChilds();
+                        i=0;
+                    }
+                }
+            }
+        }
+        return null;
     }
 }
