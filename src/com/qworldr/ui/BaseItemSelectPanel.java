@@ -34,10 +34,6 @@ public abstract class BaseItemSelectPanel<T> {
 
     private JTree myTree;
     private DefaultMutableTreeNode myTreeRoot = new DefaultMutableTreeNode((Object) null);
-    /**
-     * 可选面板集合
-     */
-    private List<T> itemList;
 
     /**
      * 左边面板
@@ -50,8 +46,7 @@ public abstract class BaseItemSelectPanel<T> {
     private JPanel rightPanel;
 
 
-    protected BaseItemSelectPanel(@NotNull List<T> itemList) {
-        this.itemList = itemList;
+    protected BaseItemSelectPanel() {
     }
 
     /**
@@ -59,15 +54,17 @@ public abstract class BaseItemSelectPanel<T> {
      */
     protected abstract void addItem(AnActionButton anActionButton);
 
-    /**
-     * 复制元素
-     */
-    protected abstract void copyItem(AnActionButton anActionButton);
 
     /**
      * 删除多个元素
      */
     protected abstract void deleteItem(AnActionButton anActionButton);
+
+    /**
+     * 重命名
+     * @param anActionButton
+     */
+    protected abstract void renameItem(AnActionButton anActionButton);
 
     /**
      * 选中元素
@@ -131,25 +128,16 @@ public abstract class BaseItemSelectPanel<T> {
             public void run(AnActionButton anActionButton) {
                 deleteItem(anActionButton);
             }
-        }).disableDownAction().disableUpAction().addExtraAction(new AnActionButton("Duplicate", PlatformIcons.COPY_ICON) {
+        }).addExtraAction(new AnActionButton("Rename", AllIcons.General.EditItemInSection) {
             public void actionPerformed(@NotNull AnActionEvent e) {
                 if (e == null) {
                     return;
                 }
-            }
-
-            public void updateButton(AnActionEvent e) {
-            }
-        }).addExtraAction(new AnActionButton("Restore deleted defaults", AllIcons.General.TodoDefault) {
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                if (e == null) {
-                    return;
-                }
-                TemplateSettings.getInstance().reset();
+               renameItem(this);
             }
 
             public boolean isEnabled() {
-                return super.isEnabled() && !TemplateSettings.getInstance().getDeletedTemplates().isEmpty();
+                return super.isEnabled() && getSelectedItem()!=null;
             }
         });
         return decorator.setToolbarPosition(ActionToolbarPosition.TOP);
@@ -165,28 +153,14 @@ public abstract class BaseItemSelectPanel<T> {
         return Messages.showInputDialog("template name", "module template", Messages.getQuestionIcon(), initValue, new InputValidator() {
             @Override
             public boolean checkInput(String inputString) {
-
-                return true;
+                return checkName(inputString);
             }
-
             @Override
             public boolean canClose(String inputString) {
                 return this.checkInput(inputString);
             }
         });
     }
-
-
-    /**
-     * 重置方法
-     *
-     * @param itemList      元素列表
-     * @param selectedIndex 选中的元素下标
-     */
-    public void reset(@NotNull List<T> itemList, int selectedIndex) {
-        this.itemList = itemList;
-    }
-
     /**
      * 获取选中元素
      *
@@ -240,4 +214,31 @@ public abstract class BaseItemSelectPanel<T> {
     public DefaultMutableTreeNode getRoot(){
        return this.myTreeRoot;
     }
+
+    public void removeNode(){
+        DefaultMutableTreeNode lastSelectedPathComponent = (DefaultMutableTreeNode) this.myTree.getLastSelectedPathComponent();
+        lastSelectedPathComponent.removeFromParent();
+        this.myTree.updateUI();
+    }
+
+    public void expandTree(){
+        expandSubTree(this.myTree.getPathForRow(0));
+    }
+
+    private void expandSubTree(TreePath path){
+        if(path==null){
+            return;
+        }
+        this.myTree.expandPath(path);
+        Object lastPathComponent = path.getLastPathComponent();
+        int childCount = this.myTree.getModel().getChildCount(lastPathComponent);
+        for (int i = 0; i < childCount; i++) {
+            expandSubTree(path.pathByAddingChild(this.myTree.getModel().getChild(lastPathComponent,i)));
+        }
+    }
+    public void updateUI(){
+        this.myTree.updateUI();
+    }
+
+    public abstract boolean checkName(String name);
 }

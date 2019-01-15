@@ -1,6 +1,7 @@
 package com.qworldr.data;
 
 import com.google.gson.annotations.Expose;
+import com.intellij.util.xmlb.XmlSerializerUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.List;
  * @Author wujiazhen
  * @Date 2018/12/6
  */
-public class TemplateTree {
+public class TemplateTree implements Cloneable{
     public static final String PATH_SEPARATOR = "/";
     @Expose
     private List<TemplateNode> childs=new ArrayList<>();
@@ -56,5 +57,18 @@ public class TemplateTree {
             }
         }
         return null;
+    }
+
+    @Override
+    public TemplateTree clone() throws CloneNotSupportedException {
+        TemplateTree templateTree = new TemplateTree();
+        this.childs.forEach(e->{
+            try {
+                templateTree.getChilds().add(e.clone());
+            } catch (CloneNotSupportedException e1) {
+                e1.printStackTrace();
+            }
+        });
+        return templateTree;
     }
 }

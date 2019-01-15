@@ -8,6 +8,7 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import com.intellij.util.xmlb.annotations.Transient;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,12 +29,13 @@ public class PersistentSetting implements PersistentStateComponent<PersistentSet
 
 
     private String moduleTemplateTreeJson;
-
+    @Transient
+    private boolean modified;
     /**
      * 模板树  module->tree
      */
     @Transient
-    private Map<String, TemplateTree> moduleTemplateTree;
+    private Map<String, TemplateTree> moduleTemplateTree=new HashMap<>();
 
     @Nullable
     @Override
@@ -51,7 +53,11 @@ public class PersistentSetting implements PersistentStateComponent<PersistentSet
 
         this.moduleTemplateTree = gson.fromJson(moduleTemplateTreeJson, new TypeToken<Map<String, TemplateTree>>() {
         }.getType());
-
+        this.moduleTemplateTree.values().forEach(templateTree -> {
+            for (TemplateNode child : templateTree.getChilds()) {
+                child.init(null);
+            }
+        });
     }
 
     @Override
@@ -77,10 +83,11 @@ public class PersistentSetting implements PersistentStateComponent<PersistentSet
     @Transient
     public TemplateTree getModuleTree() {
         Map<String, TemplateTree> moduleTemplateTree = this.getModuleTemplateTree();
-        TemplateTree templateTree = moduleTemplateTree.get(this.getSelectedModule());
-        for (TemplateNode child : templateTree.getChilds()) {
-            child.init(null);
+        String selectedModule = this.getSelectedModule();
+        if(StringUtils.isBlank(selectedModule)){
+            return null;
         }
+        TemplateTree templateTree = moduleTemplateTree.get(selectedModule);
         return templateTree;
     }
 
@@ -90,6 +97,7 @@ public class PersistentSetting implements PersistentStateComponent<PersistentSet
         } else {
             this.moduleTemplateTreeJson = gson.toJson(this.moduleTemplateTree);
         }
+        resetModified();
     }
 
     public String getModuleTemplateTreeJson() {
@@ -98,5 +106,17 @@ public class PersistentSetting implements PersistentStateComponent<PersistentSet
 
     public void setModuleTemplateTreeJson(String moduleTemplateTreeJson) {
         this.moduleTemplateTreeJson = moduleTemplateTreeJson;
+    }
+
+    public void modified(){
+        this.modified=true;
+    }
+
+    public void resetModified(){
+        this.modified=false;
+    }
+
+    public boolean isModified() {
+        return modified;
     }
 }

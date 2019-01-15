@@ -11,7 +11,7 @@ import java.util.List;
  * @Author wujiazhen
  * @Date 2018/12/6
  */
-public class TemplateNode {
+public class TemplateNode implements Cloneable {
     @Expose
     private NodeType type;
     @Expose
@@ -55,12 +55,15 @@ public class TemplateNode {
         this.nameExpression = nameExpression;
     }
 
-    public void addChild(TemplateNode child){
+    public void addChild(TemplateNode child) {
+        if (this.childs == null) {
+            this.childs = new ArrayList<>();
+        }
         this.childs.add(child);
         child.setParent(this);
     }
 
-    public void removeChild(TemplateNode child){
+    public void removeChild(TemplateNode child) {
         this.childs.remove(child);
     }
 
@@ -72,24 +75,25 @@ public class TemplateNode {
         this.parent = parent;
     }
 
-    public static TemplateNode valueOf(String tempName,String name,NodeType nodeType){
-        TemplateNode tm=new TemplateNode();
-        tm.tempName=tempName;
-        tm.nameExpression=name;
-        tm.type=nodeType;
+    public static TemplateNode valueOf(String tempName, String name, NodeType nodeType) {
+        TemplateNode tm = new TemplateNode();
+        tm.tempName = tempName;
+        tm.nameExpression = name;
+        tm.type = nodeType;
         return tm;
     }
 
-    public static TemplateNode createPackageNode(String name){
-        TemplateNode tm=new TemplateNode();
-        tm.nameExpression=name;
-        tm.type=NodeType.PACKAGE;
+    public static TemplateNode createPackageNode(String name) {
+        TemplateNode tm = new TemplateNode();
+        tm.nameExpression = name;
+        tm.type = NodeType.PACKAGE;
         return tm;
     }
 
-    private FileTemplate getFileTemplate(){
+    private FileTemplate getFileTemplate() {
         return Context.fileTemplateManager.getTemplate(this.tempName);
     }
+
     @Override
     public String toString() {
         return nameExpression;
@@ -97,12 +101,32 @@ public class TemplateNode {
 
     public void init(TemplateNode parent) {
         setParent(parent);
-        if(NodeType.PACKAGE.equals(this.type) && childs==null){
-            childs=new ArrayList<>();
-            return;
+        if (NodeType.PACKAGE.equals(this.type)) {
+            if (childs == null) {
+                childs = new ArrayList<>();
+                return;
+            }
+            for (TemplateNode child : getChilds()) {
+                child.init(this);
+            }
         }
-        for (TemplateNode child : getChilds()) {
-            child.init(this);
+    }
+
+    @Override
+    public TemplateNode clone() throws CloneNotSupportedException {
+        TemplateNode templateNode = valueOf(this.getTempName(), this.getNameExpression(), this.type);
+        if(this.getChilds()!=null){
+            templateNode.setChilds(new ArrayList<>());
+            this.getChilds().forEach(e->{
+                try {
+                    TemplateNode child = e.clone();
+                    templateNode.getChilds().add(child);
+                    child.setParent(templateNode);
+                } catch (CloneNotSupportedException e1) {
+                    e1.printStackTrace();
+                }
+            });
         }
+        return templateNode;
     }
 }

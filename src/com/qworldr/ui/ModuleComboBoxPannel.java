@@ -23,6 +23,7 @@ public class ModuleComboBoxPannel extends BaseGroupPanel {
         Map<String, TemplateTree> moduleTemplateTree = persistentSetting.getModuleTemplateTree();
         moduleTemplateTree.put(name,new TemplateTree());
         persistentSetting.setSelectedModule(name);
+        persistentSetting.modified();
         reset(new ArrayList<>(moduleTemplateTree.keySet()),name);
     }
 
@@ -37,6 +38,7 @@ public class ModuleComboBoxPannel extends BaseGroupPanel {
             select= iterator.next();
             persistentSetting.setSelectedModule(select);
         }
+        persistentSetting.modified();
         reset(new ArrayList<>(moduleTemplateTree.keySet()),select);
     }
 
@@ -44,13 +46,22 @@ public class ModuleComboBoxPannel extends BaseGroupPanel {
     protected void copyGroup(String name) {
         Map<String, TemplateTree> moduleTemplateTree = persistentSetting.getModuleTemplateTree();
         String selectedItem = getSelectedItem();
-        moduleTemplateTree.put(name,moduleTemplateTree.get(selectedItem));
+        TemplateTree templateTree = moduleTemplateTree.get(selectedItem);
+        //深拷贝
+        try {
+            templateTree=templateTree.clone();
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        moduleTemplateTree.put(name,templateTree);
         persistentSetting.setSelectedModule(name);
+        persistentSetting.modified();
         reset(new ArrayList<>(moduleTemplateTree.keySet()),name);
     }
 
     @Override
     protected void changeGroup(String name) {
         Context.persistentSetting.setSelectedModule(name);
+        Context.persistentSetting.modified();
     }
 }

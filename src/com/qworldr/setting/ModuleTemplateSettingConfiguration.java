@@ -7,6 +7,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
+import com.qworldr.data.NodeType;
 import com.qworldr.data.PersistentSetting;
 import com.qworldr.data.TemplateNode;
 import com.qworldr.ui.ModuleComboBoxPannel;
@@ -64,20 +65,33 @@ public class ModuleTemplateSettingConfiguration implements SearchableConfigurabl
     public JComponent createComponent() {
         this.panel = new JPanel(new BorderLayout());
         PersistentSetting persistentSetting = ServiceManager.getService(PersistentSetting.class);
-        myExpandByDefaultPanel = new ModuleComboBoxPannel(persistentSetting.getModuleTemplateTree().keySet(), persistentSetting.getSelectedModule());
-        this.panel.add(this.myExpandByDefaultPanel, BorderLayout.NORTH);
         fileTemplateConfigurable=new FileTemplateConfigurable(project);
         fileTemplateComponent = fileTemplateConfigurable.createComponent();
+        fileTemplateComponent.setVisible(false);
         fileTemplateConfigurable.focusToNameField();
-        moduleItemSelectPannel = new ModuleItemSelectPannel(new ArrayList()){
+        moduleItemSelectPannel = new ModuleItemSelectPannel(){
             @Override
             protected void selectedItem(TemplateNode item) {
                 super.selectedItem(item);
+                if(NodeType.PACKAGE.equals(item.getType())){
+                    fileTemplateComponent.setVisible(false);
+                    return;
+                }
                 fileTemplateConfigurable.setTemplate(fileTemplateManager.getTemplate(item.getTempName()), FileTemplateManagerImpl.getInstanceImpl(project).getDefaultTemplateDescription());
+                fileTemplateComponent.setVisible(true);
             }
         };
         JComponent component = moduleItemSelectPannel.getComponent();
         moduleItemSelectPannel.setRightEditTab(fileTemplateComponent);
+        myExpandByDefaultPanel = new ModuleComboBoxPannel(persistentSetting.getModuleTemplateTree().keySet(), persistentSetting.getSelectedModule()){
+            @Override
+            protected void changeGroup(String name) {
+                super.changeGroup(name);
+                moduleItemSelectPannel.initTree();
+            }
+        };
+
+        this.panel.add(this.myExpandByDefaultPanel, BorderLayout.NORTH);
         this.panel.add(component, BorderLayout.CENTER);
         init=true;
         return panel;
@@ -86,7 +100,7 @@ public class ModuleTemplateSettingConfiguration implements SearchableConfigurabl
     @Override
     public boolean isModified() {
         if(init) {
-            return fileTemplateConfigurable.isModified();
+            return fileTemplateConfigurable.isModified() || Context.persistentSetting.isModified();
         }
         return true;
     }

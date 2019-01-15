@@ -15,6 +15,7 @@ import com.qworldr.data.NodeType;
 import com.qworldr.data.TemplateNode;
 import com.qworldr.data.TemplateTree;
 import com.qworldr.setting.Context;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -27,10 +28,6 @@ import java.util.Set;
 
 public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
 
-
-    public ModuleItemSelectPannel(@NotNull List itemList) {
-        super(itemList);
-    }
 
     @Override
     public JComponent getComponent() {
@@ -51,11 +48,18 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
                 return this;
             }
         });
+        initTree();
+        return component;
+    }
+
+    public void initTree() {
         //初始化树
         TemplateTree moduleTree = Context.persistentSetting.getModuleTree();
         if (moduleTree == null) {
-            return component;
+            return;
         }
+        //清空树节点
+        getRoot().removeAllChildren();
         List<TemplateNode> childs = moduleTree.getChilds();
         for (TemplateNode child : childs) {
             DefaultMutableTreeNode defaultMutableTreeNode = addNode(child, getRoot());
@@ -63,7 +67,8 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
                 buildTree(child, defaultMutableTreeNode);
             }
         }
-        return component;
+        this.expandTree();
+        this.updateUI();
     }
 
     public void buildTree(TemplateNode templateNode, DefaultMutableTreeNode treeNode) {
@@ -81,14 +86,28 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
         addTemplateOrGroup(anActionButton);
     }
 
-    @Override
-    protected void copyItem(AnActionButton anActionButton) {
-
-    }
 
     @Override
     protected void deleteItem(AnActionButton anActionButton) {
+        TemplateNode selectedItem = getSelectedItem();
+        if (selectedItem.getParent() != null) {
+            selectedItem.getParent().removeChild(selectedItem);
+        } else {
+            Context.persistentSetting.getModuleTree().removeChild(selectedItem);
+        }
+        Context.persistentSetting.modified();
+        removeNode();
+    }
 
+    @Override
+    protected void renameItem(AnActionButton anActionButton) {
+        TemplateNode selectedItem = getSelectedItem();
+        String input = inputItemName(selectedItem.getNameExpression());
+        if (input == null) {
+            return;
+        }
+        selectedItem.setNameExpression(input);
+        Context.persistentSetting.modified();
     }
 
     @Override
@@ -118,7 +137,7 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
                                 }
                                 TemplateNode child = TemplateNode.valueOf(this.getTemplatePresentation().getText(), input, NodeType.JAVA);
                                 addTreeNode(child);
-
+                                Context.persistentSetting.modified();
                             }
                         }, Constraints.LAST);
                     }
@@ -133,11 +152,34 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
                 }
                 TemplateNode packageNode = TemplateNode.createPackageNode(input);
                 addTreeNode(packageNode);
+                Context.persistentSetting.modified();
             }
         });
         DataContext context = DataManager.getInstance().getDataContext(button.getContextComponent());
         ListPopup popup = JBPopupFactory.getInstance().createActionGroupPopup((String) null, group, context, JBPopupFactory.ActionSelectionAid.ALPHA_NUMBERING, true, (String) null);
         popup.show(button.getPreferredPopupPoint());
+    }
+
+    @Override
+    public boolean checkName(String name) {
+        if (StringUtils.isBlank(name)) {
+            return false;
+        }
+        TemplateNode selectedItem = getSelectedItem();
+        List<TemplateNode> sibilings;
+        if (selectedItem != null && selectedItem.getType().equals(NodeType.PACKAGE)) {
+            sibilings = selectedItem.getChilds();
+        } else if (selectedItem != null && selectedItem.getParent()!=null) {
+            sibilings = selectedItem.getParent().getChilds();
+        } else {
+            sibilings = Context.persistentSetting.getModuleTree().getChilds();
+        }
+        for (TemplateNode sibiling : sibilings) {
+            if (sibiling.getNameExpression().equals(name)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void addTreeNode(TemplateNode child) {
@@ -147,7 +189,12 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
             templateTree.addChild(child);
             addChildNode(child);
         } else if (!NodeType.PACKAGE.equals(selectedItem.getType())) {
-            selectedItem.getParent().addChild(child);
+            TemplateNode parent = selectedItem.getParent();
+            if (parent == null) {
+                Context.persistentSetting.getModuleTree().addChild(child);
+            } else {
+                parent.addChild(child);
+            }
             addSibilingNode(child);
         } else {
             if (selectedItem != null) {
