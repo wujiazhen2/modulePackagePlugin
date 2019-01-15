@@ -86,6 +86,7 @@ public class ModuleTemplateSettingConfiguration implements SearchableConfigurabl
                     } catch (ConfigurationException e) {
                         e.printStackTrace();
                     }
+                    fileTemplateManager.saveAllTemplates();
                 }
                 if (NodeType.PACKAGE.equals(item.getType())) {
                     fileTemplateComponent.setVisible(false);
@@ -131,6 +132,7 @@ public class ModuleTemplateSettingConfiguration implements SearchableConfigurabl
     @Override
     public void apply() throws ConfigurationException {
         fileTemplateConfigurable.apply();
+        fileTemplateManager.saveAllTemplates();
         Context.persistentSetting.serialize();
     }
 
