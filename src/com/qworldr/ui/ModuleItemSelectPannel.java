@@ -12,6 +12,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
 import com.intellij.ui.AnActionButton;
+import com.qworldr.Constants;
 import com.qworldr.data.NodeType;
 import com.qworldr.data.TemplateNode;
 import com.qworldr.data.TemplateTree;
@@ -131,7 +132,7 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
                         addAction(new DumbAwareAction(allTemplate.getName()) {
                             @Override
                             public void actionPerformed(AnActionEvent anActionEvent) {
-                                String input = inputItemName("Unnamed");
+                                String input = inputItemName(Constants.MODULE_NAME);
                                 if (input == null) {
                                     return;
                                 }
@@ -154,6 +155,7 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
                 addTreeNode(packageNode);
                 Context.persistentSetting.modified();
             }
+
         });
         DataContext context = DataManager.getInstance().getDataContext(button.getContextComponent());
         ListPopup popup = JBPopupFactory.getInstance().createActionGroupPopup((String) null, group, context, JBPopupFactory.ActionSelectionAid.ALPHA_NUMBERING, true, (String) null);
@@ -173,6 +175,9 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
             sibilings = selectedItem.getParent().getChilds();
         } else {
             sibilings = Context.persistentSetting.getModuleTree().getChilds();
+        }
+        if(sibilings==null || sibilings.size()==0){
+            return true;
         }
         for (TemplateNode sibiling : sibilings) {
             if (sibiling.getNameExpression().equals(name)) {

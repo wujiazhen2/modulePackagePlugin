@@ -20,7 +20,9 @@ public class TemplateTreeUtils {
             parent.add(newChild);
         }
         tree.setModel(new DefaultTreeModel(root));
-        tree.expandPath(new TreePath(parent.getPath()));
+        if(parent!=null) {
+            tree.expandPath(new TreePath(parent.getPath()));
+        }
         tree.updateUI();
         return newChild;
     }

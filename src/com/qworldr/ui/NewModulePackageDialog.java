@@ -1,17 +1,14 @@
 package com.qworldr.ui;
 
 import com.intellij.openapi.actionSystem.ActionToolbarPosition;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.Splitter;
-import com.intellij.psi.JavaDirectoryService;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiElement;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.*;
 import com.intellij.ui.AnActionButton;
 import com.intellij.ui.AnActionButtonRunnable;
 import com.intellij.ui.ToolbarDecorator;
@@ -19,22 +16,23 @@ import com.intellij.ui.border.CustomLineBorder;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.JBUI;
 import com.qworldr.data.NodeType;
 import com.qworldr.data.PersistentSetting;
 import com.qworldr.data.TemplateNode;
 import com.qworldr.data.TemplateTree;
 import com.qworldr.setting.Context;
+import com.qworldr.utils.StringUtils;
 import com.qworldr.utils.TemplateTreeUtils;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Enumeration;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @Author wujiazhen
@@ -49,6 +47,7 @@ public class NewModulePackageDialog extends DialogWrapper {
     private List<PsiElement> psiElementList = new ArrayList<>();
     private JTreeWarp jTreeWarp;
     private JList<String> jList;
+    private Properties properties = new Properties();
 
     public NewModulePackageDialog(@Nullable Project project, PsiDirectory psiDirectory) {
 //        AllIcons.General.Add
@@ -64,27 +63,47 @@ public class NewModulePackageDialog extends DialogWrapper {
     protected void doOKAction() {
         DefaultMutableTreeNode root = this.jTreeWarp.getRoot();
         Enumeration children = root.children();
-        List<TemplateNode> list =new ArrayList<>();
+        List<TemplateNode> list = new ArrayList<>();
         while (children.hasMoreElements()) {
             DefaultMutableTreeNode o = (DefaultMutableTreeNode) children.nextElement();
             list.add((TemplateNode) o.getUserObject());
         }
-        WriteCommandAction.runWriteCommandAction(project, ()->{
-                generatorPsiFile(list,psiDirectory);
+        String text = this.moduleField.getText();
+        properties.put("MODULE_NAME", org.apache.commons.lang3.StringUtils.capitalize(text));
+        WriteCommandAction.runWriteCommandAction(project, () -> {
+            PsiDirectory subdirectory = createPsiDirectory(psiDirectory,text);
+            psiElementList.add(subdirectory);
+            generatorPsiFile(list, subdirectory);
         });
         super.doOKAction();
     }
-
-    public void generatorPsiFile(List<TemplateNode> templateNodes,PsiDirectory psiDirectory){
+    public PsiDirectory createPsiDirectory(PsiDirectory parent,String dirname){
+        dirname=dirname.toLowerCase();
+        VirtualFile child = parent.getVirtualFile().findChild(dirname);
+        PsiDirectory subdirectory = null;
+        if(child==null) {
+            subdirectory = parent.createSubdirectory(dirname);
+        }else {
+            subdirectory = PsiManager.getInstance(project).findDirectory(child);
+        }
+        return subdirectory;
+    }
+    public void generatorPsiFile(List<TemplateNode> templateNodes, PsiDirectory psiDirectory) {
         for (TemplateNode templateNode : templateNodes) {
             if (templateNode.getType().equals(NodeType.PACKAGE)) {
-                PsiDirectory subdirectory = this.psiDirectory.createSubdirectory(templateNode.toString());
+                PsiDirectory subdirectory = createPsiDirectory(psiDirectory,templateNode.getNameExpression().toLowerCase());
                 psiElementList.add(subdirectory);
-                if(templateNode.getChilds()!=null && templateNode.getChilds().size()>0){
-                    generatorPsiFile(templateNode.getChilds(),subdirectory);
+                if (templateNode.getChilds() != null && templateNode.getChilds().size() > 0) {
+                    generatorPsiFile(templateNode.getChilds(), subdirectory);
                 }
             } else {
-                PsiClass aClass = JavaDirectoryService.getInstance().createClass(psiDirectory, templateNode.toString(),templateNode.getTempName());
+                String replace = StringUtils.replace(templateNode.getNameExpression(), properties);
+                VirtualFile child = psiDirectory.getVirtualFile().findChild(replace+templateNode.getType().suffix());
+                if (child != null) {
+                    Messages.showMessageDialog(String.format("文件已存在%s", replace), "错误提示", PlatformIcons.ERROR_INTRODUCTION_ICON);
+                    return;
+                }
+                PsiClass aClass = JavaDirectoryService.getInstance().createClass(psiDirectory, replace, templateNode.getTempName());
                 psiElementList.add(psiDirectory);
             }
         }
@@ -106,7 +125,7 @@ public class NewModulePackageDialog extends DialogWrapper {
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         topPanel.add(new Label("Module Name:"));
         this.moduleField = new JBTextField();
-        this.moduleField.setPreferredSize(JBUI.size(170,30));
+        this.moduleField.setPreferredSize(JBUI.size(170, 30));
         topPanel.add(moduleField);
         mainPanel.add(topPanel, BorderLayout.NORTH);
         ToolbarDecorator toolbarDecorator = ToolbarDecorator.createDecorator(templateTree).setRemoveAction(new AnActionButtonRunnable() {
@@ -121,9 +140,9 @@ public class NewModulePackageDialog extends DialogWrapper {
                 jTreeWarp.getjTree().updateUI();
             }
         }).setToolbarPosition(ActionToolbarPosition.RIGHT);
-        JPanel rightPanel =new JPanel(new BorderLayout());
-        rightPanel.add(topPanel,BorderLayout.NORTH);
-        rightPanel.add(toolbarDecorator.createPanel(),BorderLayout.CENTER);
+        JPanel rightPanel = new JPanel(new BorderLayout());
+        rightPanel.add(topPanel, BorderLayout.NORTH);
+        rightPanel.add(toolbarDecorator.createPanel(), BorderLayout.CENTER);
         JPanel leftPanel = new JPanel(new BorderLayout());
         this.jList = new JBList();
         // 只能单选

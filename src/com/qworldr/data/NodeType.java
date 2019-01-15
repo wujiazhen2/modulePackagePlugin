@@ -20,8 +20,17 @@ public enum NodeType {
         public Icon getIcon() {
             return AllIcons.FileTypes.Java;
         }
+
+        @Override
+        public String suffix() {
+            return ".java";
+        }
     },
     ;
 
     public abstract Icon getIcon();
+
+    public  String suffix(){
+        return "";
+    };
 }

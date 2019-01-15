@@ -13,6 +13,7 @@ import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.JBUI;
+import com.qworldr.setting.Context;
 import com.qworldr.utils.TemplateTreeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -124,13 +125,24 @@ public abstract class BaseItemSelectPanel<T> {
     }
 
     private ToolbarDecorator initToolbar() {
-        ToolbarDecorator decorator = ToolbarDecorator.createDecorator(this.myTree).setAddAction(new AnActionButtonRunnable() {
-            public void run(AnActionButton button) {
-                addItem(button);
+        ToolbarDecorator decorator = ToolbarDecorator.createDecorator(this.myTree).addExtraAction(new AnActionButton("add",PlatformIcons.ADD_ICON) {
+            @Override
+            public void actionPerformed(AnActionEvent anActionEvent) {
+                addItem(this);
             }
-        }).setRemoveAction(new AnActionButtonRunnable() {
-            public void run(AnActionButton anActionButton) {
-                deleteItem(anActionButton);
+
+            @Override
+            public boolean isEnabled() {
+                return StringUtils.isNotBlank(Context.persistentSetting.getSelectedModule());
+            }
+        }).addExtraAction(new AnActionButton("remove",PlatformIcons.DELETE_ICON) {
+            @Override
+            public void actionPerformed(AnActionEvent anActionEvent) {
+                renameItem(this);
+            }
+            @Override
+            public boolean isEnabled() {
+                return getSelectedItem()!=null;
             }
         }).addExtraAction(new AnActionButton("Rename", AllIcons.General.EditItemInSection) {
             public void actionPerformed(@NotNull AnActionEvent e) {
