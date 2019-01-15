@@ -8,8 +8,6 @@ import org.apache.commons.lang.StringUtils;
 import javax.swing.*;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -26,18 +24,18 @@ public class JTreeWarp {
     //定义需要被拖动的TreePath
     private TreePath movePath;
     private Project project;
-    public JTreeWarp(JTree jTree, Project project){
-        this.jTree=jTree;
-        this.project=project;
-        this.root = new DefaultMutableTreeNode("template");
-        TreeModel treeModel = new DefaultTreeModel(root);
-        jTree.setModel(treeModel);
+
+    public JTreeWarp(JTree jTree, Project project) {
+        this.jTree = jTree;
+        this.project = project;
+        this.root = (DefaultMutableTreeNode) jTree.getModel().getRoot();
         jTree.setCellRenderer(new TreeRenderer());
         repeatDetectionListener();
         setMovableTree();
         jTree.updateUI();
     }
-    public void repeatDetectionListener(){
+
+    public void repeatDetectionListener() {
         jTree.getModel().addTreeModelListener(new TreeModelAdapter() {
             @Override
             public void treeNodesChanged(TreeModelEvent e) {
@@ -49,15 +47,15 @@ public class JTreeWarp {
                 } catch (NullPointerException exc) {
                 }
                 String name = String.valueOf(node.getUserObject());
-                if(StringUtils.isBlank(name)){
+                if (StringUtils.isBlank(name)) {
                     Messages.showMessageDialog(project, "节点名字不能为null",
                             "非法操作", null);
                     editNode(node);
                 }
                 Enumeration children = node.getParent().children();
-                while (children.hasMoreElements()){
+                while (children.hasMoreElements()) {
                     DefaultMutableTreeNode defaultMutableTreeNode = (DefaultMutableTreeNode) children.nextElement();
-                    if(!defaultMutableTreeNode.equals(node) && defaultMutableTreeNode.getUserObject().equals(node.getUserObject())){
+                    if (!defaultMutableTreeNode.equals(node) && defaultMutableTreeNode.getUserObject().equals(node.getUserObject())) {
                         Messages.showMessageDialog(project, "节点名字不能重复",
                                 "非法操作", null);
                         editNode(node);
@@ -67,11 +65,13 @@ public class JTreeWarp {
             }
         });
     }
-    public void editNode(DefaultMutableTreeNode node){
+
+    public void editNode(DefaultMutableTreeNode node) {
         node.setUserObject("");
         getjTree().requestFocus();
         getjTree().startEditingAtPath(new TreePath(node.getPath()));
     }
+
     public void setMovableTree() {
         jTree.setEditable(true);
         MouseListener ml = new MouseAdapter() {
@@ -112,13 +112,14 @@ public class JTreeWarp {
 
     }
 
-    public DefaultMutableTreeNode getSelectedNode(){
+    public DefaultMutableTreeNode getSelectedNode() {
         TreePath selectionPath = jTree.getSelectionPath();
         if (selectionPath == null) {
             return null;
         }
         return (DefaultMutableTreeNode) selectionPath.getLastPathComponent();
     }
+
     public JTree getjTree() {
         return jTree;
     }

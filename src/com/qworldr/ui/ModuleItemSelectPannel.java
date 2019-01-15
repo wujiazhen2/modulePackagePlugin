@@ -8,6 +8,7 @@ import com.intellij.openapi.actionSystem.Constraints;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
 import com.intellij.ui.AnActionButton;
@@ -17,6 +18,7 @@ import com.qworldr.data.TemplateTree;
 import com.qworldr.setting.Context;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import sun.plugin2.message.Message;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -32,22 +34,7 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
     @Override
     public JComponent getComponent() {
         JComponent component = super.getComponent();
-        setTreeRender(new DefaultTreeCellRenderer() {
-            @Override
-            public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-                super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
-                //得到每个节点的TreeNode
-                DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
-                Object userObject1 = node.getUserObject();
-                if (userObject1 == null) {
-                    return this;
-                }
-                TemplateNode userObject = (TemplateNode) userObject1;
-                NodeType type = userObject.getType();
-                setIcon(type.getIcon());
-                return this;
-            }
-        });
+        setTreeRender(new TreeRenderer());
         initTree();
         return component;
     }
@@ -111,8 +98,8 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
     }
 
     @Override
-    protected void selectedItem(TemplateNode item) {
-
+    protected boolean selectedItem(TemplateNode oldItem,TemplateNode item) {
+        return true;
     }
 
 
@@ -126,12 +113,25 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
                 setDefaultIcon(false);
                 setEnabledInModalContext(false);
                 Set<String> set = new HashSet<>();
+//                add(new DumbAwareAction("New Template") {
+//                    @Override
+//                    public void actionPerformed(AnActionEvent anActionEvent) {
+//                        String input = inputItemName("Unnamed");
+//                        if (input == null) {
+//                            return;
+//                        }
+//                        TemplateNode child = TemplateNode.valueOf(input, input, NodeType.JAVA);
+//                        addTreeNode(child);
+//                        Context.persistentSetting.modified();
+//                    }
+//                });
+//                addSeparator();
                 for (FileTemplate allTemplate : Context.fileTemplateManager.getAllTemplates()) {
                     if (allTemplate instanceof CustomFileTemplate) {
                         addAction(new DumbAwareAction(allTemplate.getName()) {
                             @Override
                             public void actionPerformed(AnActionEvent anActionEvent) {
-                                String input = inputItemName("EMPTY");
+                                String input = inputItemName("Unnamed");
                                 if (input == null) {
                                     return;
                                 }
@@ -146,7 +146,7 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
         });
         group.add(new DumbAwareAction("Module Template") {
             public void actionPerformed(@NotNull AnActionEvent e) {
-                String input = inputItemName("EMPTY");
+                String input = inputItemName("Unnamed");
                 if (input == null) {
                     return;
                 }
@@ -169,7 +169,7 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
         List<TemplateNode> sibilings;
         if (selectedItem != null && selectedItem.getType().equals(NodeType.PACKAGE)) {
             sibilings = selectedItem.getChilds();
-        } else if (selectedItem != null && selectedItem.getParent()!=null) {
+        } else if (selectedItem != null && selectedItem.getParent() != null) {
             sibilings = selectedItem.getParent().getChilds();
         } else {
             sibilings = Context.persistentSetting.getModuleTree().getChilds();

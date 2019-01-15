@@ -13,6 +13,7 @@ import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.JBUI;
+import com.qworldr.utils.TemplateTreeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -71,7 +72,7 @@ public abstract class BaseItemSelectPanel<T> {
      *
      * @param item 元素对象
      */
-    protected abstract void selectedItem(T item);
+    protected abstract boolean selectedItem(T oldItem,T item);
 
     /**
      * 获取面板
@@ -84,18 +85,12 @@ public abstract class BaseItemSelectPanel<T> {
 
         // 右边面板
         this.rightPanel = new JPanel(new BorderLayout());
-
         // 左右分割面板并添加至主面板
         Splitter splitter = new Splitter(false, 0.2F);
-
         splitter.setFirstComponent(leftPanel);
         splitter.setSecondComponent(rightPanel);
-
         mainPanel.add(splitter, BorderLayout.CENTER);
-
         mainPanel.setPreferredSize(JBUI.size(400, 300));
-
-
         return mainPanel;
     }
 
@@ -107,7 +102,16 @@ public abstract class BaseItemSelectPanel<T> {
         this.myTree.addTreeSelectionListener(e->{
             Object[] path = e.getPath().getPath();
             DefaultMutableTreeNode o = (DefaultMutableTreeNode)path[path.length - 1];
-            selectedItem( (T)o.getUserObject());
+            TreePath oldLeadSelectionPath = e.getOldLeadSelectionPath();
+            T  old=null;
+            if(oldLeadSelectionPath!=null){
+                DefaultMutableTreeNode lastPathComponent = (DefaultMutableTreeNode) oldLeadSelectionPath.getLastPathComponent();
+                old= (T) lastPathComponent.getUserObject();
+            }
+            boolean b = selectedItem(old, (T) o.getUserObject());
+            if(!b){
+                this.myTree.setSelectionPath(e.getOldLeadSelectionPath());
+            }
         });
         return this.initToolbar().createPanel();
     }
@@ -195,16 +199,7 @@ public abstract class BaseItemSelectPanel<T> {
         addNode(t,parent);
     }
     public DefaultMutableTreeNode addNode(T t,DefaultMutableTreeNode parent){
-        DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(t);
-        if (parent == null) {
-            this.myTreeRoot.add(newChild);
-        } else {
-            parent.add(newChild);
-        }
-        this.myTree.setModel(new DefaultTreeModel(this.myTreeRoot));
-        this.myTree.expandPath(this.myTree.getSelectionPath());
-        this.myTree.updateUI();
-        return newChild;
+        return TemplateTreeUtils.addNode(myTree,t,parent);
     }
     public void addChildNode(T t) {
         DefaultMutableTreeNode lastSelectedPathComponent = (DefaultMutableTreeNode) this.myTree.getLastSelectedPathComponent();
@@ -222,20 +217,10 @@ public abstract class BaseItemSelectPanel<T> {
     }
 
     public void expandTree(){
-        expandSubTree(this.myTree.getPathForRow(0));
+        TemplateTreeUtils.expandTree(myTree);
     }
 
-    private void expandSubTree(TreePath path){
-        if(path==null){
-            return;
-        }
-        this.myTree.expandPath(path);
-        Object lastPathComponent = path.getLastPathComponent();
-        int childCount = this.myTree.getModel().getChildCount(lastPathComponent);
-        for (int i = 0; i < childCount; i++) {
-            expandSubTree(path.pathByAddingChild(this.myTree.getModel().getChild(lastPathComponent,i)));
-        }
-    }
+
     public void updateUI(){
         this.myTree.updateUI();
     }
