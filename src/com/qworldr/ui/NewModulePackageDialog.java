@@ -16,7 +16,6 @@ import com.intellij.ui.border.CustomLineBorder;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.JBUI;
 import com.qworldr.data.NodeType;
@@ -31,6 +30,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.util.*;
 import java.util.List;
 
@@ -41,6 +42,7 @@ import java.util.List;
 public class NewModulePackageDialog extends DialogWrapper {
     private JPanel mainPanel;
     private JTextField moduleField;
+    private JTextField packageField;
     private JTree templateTree;
     private PsiDirectory psiDirectory;
     private Project project;
@@ -64,41 +66,51 @@ public class NewModulePackageDialog extends DialogWrapper {
         DefaultMutableTreeNode root = this.jTreeWarp.getRoot();
         Enumeration children = root.children();
         List<TemplateNode> list = new ArrayList<>();
+        String packageFieldText = this.packageField.getText();
+        String moduleFieldText = this.moduleField.getText();
+        if(org.apache.commons.lang3.StringUtils.isBlank(packageFieldText)){
+            packageField.setText(moduleField.getText());
+        }
+        if(org.apache.commons.lang3.StringUtils.isBlank(packageFieldText) || org.apache.commons.lang3.StringUtils.isBlank(moduleFieldText)){
+            Messages.showMessageDialog("module name or package name can't be null ", "错误提示", PlatformIcons.ERROR_INTRODUCTION_ICON);
+        }
         while (children.hasMoreElements()) {
             DefaultMutableTreeNode o = (DefaultMutableTreeNode) children.nextElement();
             list.add((TemplateNode) o.getUserObject());
         }
-        String text = this.moduleField.getText();
-        properties.put("MODULE_NAME", org.apache.commons.lang3.StringUtils.capitalize(text));
+
+        properties.put("MODULE_NAME", org.apache.commons.lang3.StringUtils.capitalize(moduleFieldText));
         WriteCommandAction.runWriteCommandAction(project, () -> {
-            PsiDirectory subdirectory = createPsiDirectory(psiDirectory,text);
+            PsiDirectory subdirectory = createPsiDirectory(psiDirectory, packageFieldText);
             psiElementList.add(subdirectory);
             generatorPsiFile(list, subdirectory);
         });
         super.doOKAction();
     }
-    public PsiDirectory createPsiDirectory(PsiDirectory parent,String dirname){
-        dirname=dirname.toLowerCase();
+
+    public PsiDirectory createPsiDirectory(PsiDirectory parent, String dirname) {
+        dirname = dirname.toLowerCase();
         VirtualFile child = parent.getVirtualFile().findChild(dirname);
         PsiDirectory subdirectory = null;
-        if(child==null) {
+        if (child == null) {
             subdirectory = parent.createSubdirectory(dirname);
-        }else {
+        } else {
             subdirectory = PsiManager.getInstance(project).findDirectory(child);
         }
         return subdirectory;
     }
+
     public void generatorPsiFile(List<TemplateNode> templateNodes, PsiDirectory psiDirectory) {
         for (TemplateNode templateNode : templateNodes) {
             if (templateNode.getType().equals(NodeType.PACKAGE)) {
-                PsiDirectory subdirectory = createPsiDirectory(psiDirectory,templateNode.getNameExpression().toLowerCase());
+                PsiDirectory subdirectory = createPsiDirectory(psiDirectory, templateNode.getNameExpression().toLowerCase());
                 psiElementList.add(subdirectory);
                 if (templateNode.getChilds() != null && templateNode.getChilds().size() > 0) {
                     generatorPsiFile(templateNode.getChilds(), subdirectory);
                 }
             } else {
                 String replace = StringUtils.replace(templateNode.getNameExpression(), properties);
-                VirtualFile child = psiDirectory.getVirtualFile().findChild(replace+templateNode.getType().suffix());
+                VirtualFile child = psiDirectory.getVirtualFile().findChild(replace + templateNode.getType().suffix());
                 if (child != null) {
                     Messages.showMessageDialog(String.format("文件已存在%s", replace), "错误提示", PlatformIcons.ERROR_INTRODUCTION_ICON);
                     return;
@@ -123,11 +135,24 @@ public class NewModulePackageDialog extends DialogWrapper {
         this.templateTree.setRootVisible(false);
         this.mainPanel = new JPanel(new BorderLayout());
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        topPanel.add(new Label("Module Name:"));
+        JPanel rightPanel = new JPanel(new BorderLayout());
+        topPanel.add(new Label("Module Name:  "));
         this.moduleField = new JBTextField();
         this.moduleField.setPreferredSize(JBUI.size(170, 30));
         topPanel.add(moduleField);
-        mainPanel.add(topPanel, BorderLayout.NORTH);
+        rightPanel.add(topPanel, BorderLayout.NORTH);
+        topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        topPanel.add(new Label("Package Name:"));
+        this.packageField = new JBTextField();
+        this.packageField.setPreferredSize(JBUI.size(170, 30));
+        topPanel.add(packageField);
+        this.moduleField.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                packageField.setText(moduleField.getText());
+            }
+        });
+        rightPanel.add(topPanel, BorderLayout.CENTER);
         ToolbarDecorator toolbarDecorator = ToolbarDecorator.createDecorator(templateTree).setRemoveAction(new AnActionButtonRunnable() {
             @Override
             public void run(AnActionButton anActionButton) {
@@ -140,9 +165,8 @@ public class NewModulePackageDialog extends DialogWrapper {
                 jTreeWarp.getjTree().updateUI();
             }
         }).setToolbarPosition(ActionToolbarPosition.RIGHT);
-        JPanel rightPanel = new JPanel(new BorderLayout());
-        rightPanel.add(topPanel, BorderLayout.NORTH);
-        rightPanel.add(toolbarDecorator.createPanel(), BorderLayout.CENTER);
+
+        rightPanel.add(toolbarDecorator.createPanel(), BorderLayout.SOUTH);
         JPanel leftPanel = new JPanel(new BorderLayout());
         this.jList = new JBList();
         // 只能单选
@@ -162,7 +186,7 @@ public class NewModulePackageDialog extends DialogWrapper {
         Splitter splitter = new Splitter(false, 0.3F);
         splitter.setFirstComponent(leftPanel);
         splitter.setSecondComponent(rightPanel);
-        mainPanel.add(splitter, BorderLayout.CENTER);
+        mainPanel.add(splitter, BorderLayout.NORTH);
         this.templateTree.setCellRenderer(new TreeRenderer());
         String selectedModule = Context.persistentSetting.getSelectedModule();
         for (int i = 0; i < this.jList.getModel().getSize(); i++) {

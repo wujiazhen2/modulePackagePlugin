@@ -20,25 +20,26 @@ public class TemplateTreeUtils {
             parent.add(newChild);
         }
         tree.setModel(new DefaultTreeModel(root));
-        if(parent!=null) {
-            tree.expandPath(new TreePath(parent.getPath()));
+        if (parent != null) {
+            expandTree(tree);
         }
         tree.updateUI();
         return newChild;
     }
 
-    public static void expandTree(JTree myTree){
-        expandSubTree(myTree,myTree.getPathForRow(0));
+    public static void expandTree(JTree myTree) {
+        expandSubTree(myTree, myTree.getPathForRow(0));
     }
-    private static void expandSubTree(JTree myTree,TreePath path){
-        if(path==null){
+
+    private static void expandSubTree(JTree myTree, TreePath path) {
+        if (path == null) {
             return;
         }
         myTree.expandPath(path);
         Object lastPathComponent = path.getLastPathComponent();
         int childCount = myTree.getModel().getChildCount(lastPathComponent);
         for (int i = 0; i < childCount; i++) {
-            expandSubTree(myTree,path.pathByAddingChild(myTree.getModel().getChild(lastPathComponent,i)));
+            expandSubTree(myTree, path.pathByAddingChild(myTree.getModel().getChild(lastPathComponent, i)));
         }
     }
 }

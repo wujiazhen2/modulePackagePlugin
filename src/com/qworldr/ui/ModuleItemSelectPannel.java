@@ -8,7 +8,6 @@ import com.intellij.openapi.actionSystem.Constraints;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.project.DumbAwareAction;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
 import com.intellij.ui.AnActionButton;
@@ -19,12 +18,9 @@ import com.qworldr.data.TemplateTree;
 import com.qworldr.setting.Context;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import sun.plugin2.message.Message;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import java.awt.*;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -99,7 +95,7 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
     }
 
     @Override
-    protected boolean selectedItem(TemplateNode oldItem,TemplateNode item) {
+    protected boolean selectedItem(TemplateNode oldItem, TemplateNode item) {
         return true;
     }
 
@@ -176,7 +172,7 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
         } else {
             sibilings = Context.persistentSetting.getModuleTree().getChilds();
         }
-        if(sibilings==null || sibilings.size()==0){
+        if (sibilings == null || sibilings.size() == 0) {
             return true;
         }
         for (TemplateNode sibiling : sibilings) {
