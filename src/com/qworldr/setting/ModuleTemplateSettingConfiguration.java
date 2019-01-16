@@ -8,7 +8,6 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.qworldr.data.NodeType;
 import com.qworldr.data.PersistentSetting;
 import com.qworldr.data.TemplateNode;
@@ -86,7 +85,6 @@ public class ModuleTemplateSettingConfiguration implements SearchableConfigurabl
                     } catch (ConfigurationException e) {
                         e.printStackTrace();
                     }
-                    fileTemplateManager.saveAllTemplates();
                 }
                 if (NodeType.PACKAGE.equals(item.getType())) {
                     fileTemplateComponent.setVisible(false);
