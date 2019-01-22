@@ -26,9 +26,12 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
         if (userObject1 == null) {
             return this;
         }
-        TemplateNode userObject = (TemplateNode) userObject1;
-        NodeType type = userObject.getType();
-        setIcon(type.getIcon());
+        if(userObject1 instanceof TemplateNode) {
+            TemplateNode userObject = (TemplateNode) userObject1;
+            NodeType type = userObject.getType();
+            setIcon(type.getIcon());
+        }
+
         return this;
     }
 }
