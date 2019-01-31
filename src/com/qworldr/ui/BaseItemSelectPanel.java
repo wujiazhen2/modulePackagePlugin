@@ -1,6 +1,5 @@
 package com.qworldr.ui;
 
-import com.intellij.codeInsight.template.impl.TemplateSettings;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.ActionToolbarPosition;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -8,7 +7,6 @@ import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.AnActionButton;
-import com.intellij.ui.AnActionButtonRunnable;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
@@ -19,11 +17,10 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeCellRenderer;
+import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.util.List;
 
 /**
  * 元素选择面板
@@ -138,7 +135,7 @@ public abstract class BaseItemSelectPanel<T> {
         }).addExtraAction(new AnActionButton("remove",PlatformIcons.DELETE_ICON) {
             @Override
             public void actionPerformed(AnActionEvent anActionEvent) {
-                renameItem(this);
+                deleteItem(this);
             }
             @Override
             public boolean isEnabled() {
@@ -209,6 +206,9 @@ public abstract class BaseItemSelectPanel<T> {
         DefaultMutableTreeNode lastSelectedPathComponent = (DefaultMutableTreeNode) this.myTree.getLastSelectedPathComponent();
         DefaultMutableTreeNode parent =(DefaultMutableTreeNode) lastSelectedPathComponent.getParent();
         addNode(t,parent);
+    }
+    public void addScendsNode(T t){
+        addNode(t,myTreeRoot);
     }
     public DefaultMutableTreeNode addNode(T t,DefaultMutableTreeNode parent){
         return TemplateTreeUtils.addNode(myTree,t,parent);

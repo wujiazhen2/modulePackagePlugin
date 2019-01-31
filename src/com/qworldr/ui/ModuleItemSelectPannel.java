@@ -110,19 +110,6 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
                 setDefaultIcon(false);
                 setEnabledInModalContext(false);
                 Set<String> set = new HashSet<>();
-//                add(new DumbAwareAction("New Template") {
-//                    @Override
-//                    public void actionPerformed(AnActionEvent anActionEvent) {
-//                        String input = inputItemName("Unnamed");
-//                        if (input == null) {
-//                            return;
-//                        }
-//                        TemplateNode child = TemplateNode.valueOf(input, input, NodeType.JAVA);
-//                        addTreeNode(child);
-//                        Context.persistentSetting.modified();
-//                    }
-//                });
-//                addSeparator();
                 for (FileTemplate allTemplate : Context.fileTemplateManager.getAllTemplates()) {
                     if (allTemplate instanceof CustomFileTemplate) {
                         addAction(new DumbAwareAction(allTemplate.getName()) {
@@ -141,7 +128,7 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
                 }
             }
         });
-        group.add(new DumbAwareAction("Module Template") {
+        group.add(new DumbAwareAction("Package Template") {
             public void actionPerformed(@NotNull AnActionEvent e) {
                 String input = inputItemName("Unnamed");
                 if (input == null) {
@@ -149,6 +136,18 @@ public class ModuleItemSelectPannel extends BaseItemSelectPanel<TemplateNode> {
                 }
                 TemplateNode packageNode = TemplateNode.createPackageNode(input);
                 addTreeNode(packageNode);
+                Context.persistentSetting.modified();
+            }
+
+        });
+        group.add(new DumbAwareAction("Top Package") {
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                String input = inputItemName("Unnamed");
+                if (input == null) {
+                    return;
+                }
+                TemplateNode packageNode = TemplateNode.createPackageNode(input);
+                addScendsNode(packageNode);
                 Context.persistentSetting.modified();
             }
 
