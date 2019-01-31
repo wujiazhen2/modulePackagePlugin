@@ -28,18 +28,18 @@ public class TemplateTreeUtils {
     }
 
     public static void expandTree(JTree myTree) {
-        expandSubTree(myTree, myTree.getPathForRow(0));
+        expandSubTree(myTree,  new TreePath(myTree.getModel().getRoot()) );
     }
 
     private static void expandSubTree(JTree myTree, TreePath path) {
         if (path == null) {
             return;
         }
-        myTree.expandPath(path);
         Object lastPathComponent = path.getLastPathComponent();
         int childCount = myTree.getModel().getChildCount(lastPathComponent);
         for (int i = 0; i < childCount; i++) {
             expandSubTree(myTree, path.pathByAddingChild(myTree.getModel().getChild(lastPathComponent, i)));
         }
+        myTree.expandPath(path);
     }
 }
